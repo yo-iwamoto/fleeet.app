@@ -1,6 +1,7 @@
 {
-  "name": "my-next-template",
-  "license": "MIT",
+  "name": "@tweet-deleter/web",
+  "license": "UNLICENCED",
+  "private": true,
   "scripts": {
     "dev": "run-p dev:'*'",
     "dev:next": "next dev",
