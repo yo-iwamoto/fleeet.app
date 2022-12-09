@@ -3,8 +3,7 @@
   "license": "UNLICENSED",
   "private": true,
   "workspaces": [
-    "@tweet-deleter/web",
-    "@tweet-deleter/api"
+    "apps/*"
   ],
   "packageManager": "yarn@3.3.0"
 }
