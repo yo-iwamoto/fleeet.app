@@ -1,0 +1,22 @@
+{
+  "name": "@tweet-deleter/api",
+  "license": "UNLICENCED",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "publish": "wrangler publish",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "hono": "^2.5.10"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20221111.1",
+    "@types/node": "^18.11.12",
+    "typescript": "^4.9.4",
+    "vitest": "^0.25.6",
+    "vitest-environment-miniflare": "^2.11.0",
+    "wrangler": "^2.6.2"
+  }
+}
