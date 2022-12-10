@@ -1,14 +1,16 @@
 {
-  "name": "@tweet-deleter/api",
+  "name": "@fleet-app/api",
   "license": "UNLICENCED",
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "publish": "wrangler publish",
+    "publish:staging": "wrangler publish --env staging",
+    "publish:production": "wrangler publish --env production",
     "test": "vitest run",
     "test:watch": "vitest watch"
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "hono": "^2.5.10"
   },
   "devDependencies": {

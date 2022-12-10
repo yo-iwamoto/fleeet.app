@@ -1,3 +1,14 @@
-name = "tweet-deleter-api"
+name = "fleet-app-api-dev"
 main = "src/app.ts"
 compatibility_date = "2022-12-10"
+
+[vars]
+ENVIRONMENT = "dev"
+FRONTEND_URL = "http://localhost:3000"
+API_URL = "http://localhost:8787"
+
+[env.production]
+name = "fleet-app-api"
+ENVIRONMENT = "production"
+FRONTEND_URL = "http://fleet-app.vercel.app"
+API_URL = "https://fleet-app-api.yoiw-cw-demo.workers.dev"
