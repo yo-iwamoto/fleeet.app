@@ -1,12 +1,12 @@
 {
-  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
   "prettier.configPath": ".prettierrc",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.validate": ["typescript", "typescriptreact"]
-  ,  "[prisma]": {
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   }
 }
