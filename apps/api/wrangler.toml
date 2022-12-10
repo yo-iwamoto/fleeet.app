@@ -12,3 +12,8 @@ name = "fleet-app-api"
 ENVIRONMENT = "production"
 FRONTEND_URL = "http://fleet-app.vercel.app"
 API_URL = "https://fleet-app-api.yoiw-cw-demo.workers.dev"
+
+[[ d1_databases ]]
+binding = "DB"
+database_name = "fleet-app"
+database_id = "2dc50a98-7a9c-4884-aef5-95ec21927f97"

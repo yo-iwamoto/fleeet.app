@@ -1,4 +1,4 @@
-import { Context, Hono } from 'hono';
+import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { validator } from 'hono/validator';
 import { cors } from 'hono/cors';
@@ -68,6 +68,9 @@ app.get(
       clientSecret: ctx.env.TWITTER_CLIENT_SECRET,
       apiUrl: ctx.env.API_URL,
     });
+
+    const userId = getRandomValue();
+    const result = ctx.env.DB.prepare('INSERT INTO ');
     return ctx.json({ accessToken, refreshToken });
   }
 );
