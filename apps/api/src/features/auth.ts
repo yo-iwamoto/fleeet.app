@@ -1,5 +1,18 @@
 import { TWITTER_AUTHORIZATION_BASE_URL, TWITTER_TOKEN_BASE_URL } from '@/lib/const';
 
+type TokenResponse = {
+  token_type: 'bearer';
+  expires_in: number;
+  access_token: string;
+  scope: string;
+  refresh_token: string;
+};
+
+type TokenReturnValue = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export const getTwitterAuthorizationUrl = async ({
   state,
   clientId,
@@ -24,6 +37,8 @@ export const getTwitterAuthorizationUrl = async ({
   return url.toString();
 };
 
+const getBasic = (clientId: string, clientSecret: string) => btoa(`${clientId}:${clientSecret}`);
+
 export const getTokenFromCode = async ({
   code,
   clientId,
@@ -34,7 +49,7 @@ export const getTokenFromCode = async ({
   clientId: string;
   clientSecret: string;
   apiUrl: string;
-}): Promise<string> => {
+}): Promise<TokenReturnValue> => {
   const body = new URLSearchParams();
   Object.entries({
     code,
@@ -43,24 +58,47 @@ export const getTokenFromCode = async ({
     code_verifier: 'challenge',
   }).map(([key, value]) => body.append(key, value));
 
-  const basic = btoa(`${clientId}:${clientSecret}`);
+  const res = await fetch(TWITTER_TOKEN_BASE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${getBasic(clientId, clientSecret)}`,
+    },
+    body,
+  }).then((r) => r.json<TokenResponse>());
+
+  return {
+    accessToken: res.access_token,
+    refreshToken: res.refresh_token,
+  };
+};
+
+export const getRefreshedToken = async ({
+  refreshToken,
+  clientId,
+  clientSecret,
+}: {
+  refreshToken: string;
+  clientId: string;
+  clientSecret: string;
+}): Promise<TokenReturnValue> => {
+  const body = new URLSearchParams();
+  Object.entries({
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+  }).map(([key, value]) => body.append(key, value));
 
   const res = await fetch(TWITTER_TOKEN_BASE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${basic}`,
+      Authorization: `Basic ${getBasic(clientId, clientSecret)}`,
     },
     body,
-  }).then((r) =>
-    r.json<{
-      token_type: 'bearer';
-      expires_in: number;
-      access_token: string;
-      scope: string;
-      refresh_token: string;
-    }>()
-  );
+  }).then((r) => r.json<TokenResponse>());
 
-  return res.access_token;
+  return {
+    accessToken: res.access_token,
+    refreshToken: res.refresh_token,
+  };
 };

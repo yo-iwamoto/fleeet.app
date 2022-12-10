@@ -1,9 +1,9 @@
-import { Hono } from 'hono';
+import { Context, Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { validator } from 'hono/validator';
 import { cors } from 'hono/cors';
 import { Env } from '@/types/env';
-import { getTokenFromCode, getTwitterAuthorizationUrl } from './features/auth';
+import { getRefreshedToken, getTokenFromCode, getTwitterAuthorizationUrl } from './features/auth';
 import { getRandomValue } from './lib/getRandomValue';
 import { setCookie } from './lib/cookie';
 import { TWITTER_STATE_COOKIE_NAME } from './lib/const';
@@ -62,13 +62,30 @@ app.get(
       return ctx.json({ code: 'incorrect-state', stateCookie, state });
     }
 
-    const token = await getTokenFromCode({
+    const { accessToken, refreshToken } = await getTokenFromCode({
       code,
       clientId: ctx.env.TWITTER_CLIENT_ID,
       clientSecret: ctx.env.TWITTER_CLIENT_SECRET,
       apiUrl: ctx.env.API_URL,
     });
-    return ctx.text(token);
+    return ctx.json({ accessToken, refreshToken });
+  }
+);
+
+app.get(
+  '/refresh',
+  validator((ctx) => ({
+    refreshToken: ctx.query('token').isRequired(),
+  })),
+  async (ctx) => {
+    const { refreshToken } = ctx.req.valid();
+    const { accessToken } = await getRefreshedToken({
+      refreshToken,
+      clientId: ctx.env.TWITTER_CLIENT_ID,
+      clientSecret: ctx.env.TWITTER_CLIENT_SECRET,
+    });
+
+    return ctx.json({ accessToken });
   }
 );
 
