@@ -3,7 +3,7 @@ import { logger } from 'hono/logger';
 import { validator } from 'hono/validator';
 import { cors } from 'hono/cors';
 import { Env } from '@/types/env';
-import { getRefreshedToken, getTokenFromCode, getTwitterAuthorizationUrl } from './features/auth';
+import { getRefreshedToken, getInfoFromCode, getTwitterAuthorizationUrl } from './features/auth';
 import { getRandomValue } from './lib/getRandomValue';
 import { setCookie } from './lib/cookie';
 import { TWITTER_STATE_COOKIE_NAME } from './lib/const';
@@ -62,18 +62,67 @@ app.get(
       return ctx.json({ code: 'incorrect-state', stateCookie, state });
     }
 
-    const { accessToken, refreshToken } = await getTokenFromCode({
+    const { accessToken, refreshToken, userId, userName } = await getInfoFromCode({
       code,
       clientId: ctx.env.TWITTER_CLIENT_ID,
       clientSecret: ctx.env.TWITTER_CLIENT_SECRET,
       apiUrl: ctx.env.API_URL,
     });
 
-    const userId = getRandomValue();
-    const result = ctx.env.DB.prepare('INSERT INTO ');
+    const result = await ctx.env.DB.prepare(
+      `
+      SELECT id
+      FROM users
+      WHERE twitter_user_id = ?
+      LIMIT 1;
+    `
+    )
+      .bind(userId)
+      .first<{ id: string } | null>();
+
+    const noRecordExistsYet = result === null;
+
+    if (noRecordExistsYet) {
+      const appUserId = getRandomValue();
+      const { success } = await ctx.env.DB.prepare(
+        `
+        INSERT INTO users
+        (
+          id,
+          twitter_user_id,
+          twitter_user_name,
+        )
+        VALUES (?, ?, ?)
+      `
+      )
+        .bind(appUserId, userId, userName)
+        .run();
+      if (!success) {
+        ctx.status(500);
+        return ctx.json({ code: 'internal' });
+      }
+
+      setCookie(ctx, 'user', appUserId);
+      return ctx.json({ message: 'ok' });
+    } else {
+      setCookie(ctx, 'user', result.id);
+    }
+
     return ctx.json({ accessToken, refreshToken });
   }
 );
+
+app.get('/hello', async (ctx) => {
+  const result = await ctx.env.DB.prepare(
+    `
+    SELECT id
+    FROM users
+    LIMIT 1;
+  `
+  ).first<{ id: string }>();
+
+  return ctx.json({ result });
+});
 
 app.get(
   '/refresh',

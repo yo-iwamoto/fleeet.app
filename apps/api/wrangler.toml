@@ -16,4 +16,5 @@ API_URL = "https://fleet-app-api.yoiw-cw-demo.workers.dev"
 [[ d1_databases ]]
 binding = "DB"
 database_name = "fleet-app"
-database_id = "2dc50a98-7a9c-4884-aef5-95ec21927f97"
+database_id = "0063a8d1-24ad-4a2d-ad06-4e3bff2111aa"
+preview_database_id = "3068b6aa-8108-4bb0-b624-4cb41e34a330"

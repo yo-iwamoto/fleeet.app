@@ -8,9 +8,12 @@ type TokenResponse = {
   refresh_token: string;
 };
 
-type TokenReturnValue = {
-  accessToken: string;
-  refreshToken: string;
+type UserResponse = {
+  data: {
+    id: string;
+    name: string;
+    username: string;
+  };
 };
 
 export const getTwitterAuthorizationUrl = async ({
@@ -28,7 +31,7 @@ export const getTwitterAuthorizationUrl = async ({
     response_type: 'code',
     client_id: clientId,
     redirect_uri: `${apiUrl}/oauth/twitter/callback`,
-    scope: 'tweet.read offline.access',
+    scope: 'tweet.read offline.access users.read',
     state,
     code_challenge: 'challenge',
     code_challenge_method: 'plain',
@@ -39,7 +42,7 @@ export const getTwitterAuthorizationUrl = async ({
 
 const getBasic = (clientId: string, clientSecret: string) => btoa(`${clientId}:${clientSecret}`);
 
-export const getTokenFromCode = async ({
+export const getInfoFromCode = async ({
   code,
   clientId,
   clientSecret,
@@ -49,7 +52,12 @@ export const getTokenFromCode = async ({
   clientId: string;
   clientSecret: string;
   apiUrl: string;
-}): Promise<TokenReturnValue> => {
+}): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  userId: string;
+  userName: string;
+}> => {
   const body = new URLSearchParams();
   Object.entries({
     code,
@@ -58,6 +66,8 @@ export const getTokenFromCode = async ({
     code_verifier: 'challenge',
   }).map(([key, value]) => body.append(key, value));
 
+  console.log('============');
+
   const res = await fetch(TWITTER_TOKEN_BASE_URL, {
     method: 'POST',
     headers: {
@@ -65,11 +75,24 @@ export const getTokenFromCode = async ({
       Authorization: `Basic ${getBasic(clientId, clientSecret)}`,
     },
     body,
-  }).then((r) => r.json<TokenResponse>());
+  })
+    .then((r) => r.json<TokenResponse>())
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+
+  const user = await fetch('https://api.twitter.com/2/users.me', {
+    headers: {
+      Authorization: `Bearer ${res.access_token}`,
+    },
+  }).then((r) => r.json<UserResponse>());
 
   return {
     accessToken: res.access_token,
     refreshToken: res.refresh_token,
+    userId: user.data.id,
+    userName: user.data.username,
   };
 };
 
@@ -81,7 +104,10 @@ export const getRefreshedToken = async ({
   refreshToken: string;
   clientId: string;
   clientSecret: string;
-}): Promise<TokenReturnValue> => {
+}): Promise<{
+  accessToken: string;
+  refreshToken: string;
+}> => {
   const body = new URLSearchParams();
   Object.entries({
     grant_type: 'refresh_token',
